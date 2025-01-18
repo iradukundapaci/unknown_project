@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option csharp_namespace = "StreamDb.Protos";
+
+package user;
+
+import "google/protobuf/empty.proto";
+
+service UserService {
+  rpc CreateUser (CreateUserRequest) returns (UserResponse);
+  rpc GetUser (GetUserRequest) returns (UserResponse);
+  rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
+  rpc DeleteUser (DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse);
+}
+
+message CreateUserRequest {
+  string email = 1;
+  string names = 2;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}
+
+message UpdateUserRequest {
+  int32 id = 1;
+  string email = 2;
+  string names = 3;
+}
+
+message DeleteUserRequest {
+  int32 id = 1;
+}
+
+message UserResponse {
+  int32 id = 1;
+  string email = 2;
+  string names = 3;
+}
+
+message ListUsersResponse {
+  repeated UserResponse users = 1;
+}

@@ -1,0 +1,6 @@
+﻿services:
+  streamdb:
+    image: streamdb
+    build:
+      context: .
+      dockerfile: Dockerfile

@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+option csharp_namespace = "StreamDb.Protos";
+
+package stream;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service StreamService {
+  rpc CreateStream (CreateStreamRequest) returns (StreamResponse);
+  rpc GetStream (GetStreamRequest) returns (StreamResponse);
+  rpc UpdateStream (UpdateStreamRequest) returns (StreamResponse);
+  rpc DeleteStream (DeleteStreamRequest) returns (google.protobuf.Empty);
+  rpc ListStreams (ListStreamsRequest) returns (ListStreamsResponse);
+}
+
+enum StreamStatus {
+  ONLINE = 0;
+  OFFLINE = 1;
+  COMPLETE = 2;
+  SCHEDULED = 3;
+}
+
+message CreateStreamRequest {
+  string title = 1;
+  string description = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string stream_key = 5;
+  string resolution = 6;
+  string bitrate = 7;
+  string framerate = 8;
+  string codec = 9;
+  int32 protocol = 10;
+  StreamStatus status = 11;
+  int32 user_id = 12;
+}
+
+message GetStreamRequest {
+  int32 id = 1;
+}
+
+message UpdateStreamRequest {
+  int32 id = 1;
+  string title = 2;
+  string description = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string resolution = 6;
+  string bitrate = 7;
+  string framerate = 8;
+  string codec = 9;
+  int32 protocol = 10;
+  StreamStatus status = 11;
+}
+
+message DeleteStreamRequest {
+  int32 id = 1;
+}
+
+message ListStreamsRequest {
+  optional int32 user_id = 1;
+  optional StreamStatus status = 2;
+}
+
+message StreamResponse {
+  int32 id = 1;
+  string title = 2;
+  string description = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string stream_key = 6;
+  string resolution = 7;
+  string bitrate = 8;
+  string framerate = 9;
+  string codec = 10;
+  int32 view_count = 11;
+  int32 protocol = 12;
+  StreamStatus status = 13;
+  int32 user_id = 14;
+}
+
+message ListStreamsResponse {
+  repeated StreamResponse streams = 1;
+}

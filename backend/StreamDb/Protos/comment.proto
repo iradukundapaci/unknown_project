@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+option csharp_namespace = "StreamDb.Protos";
+
+package comment;
+
+import "google/protobuf/empty.proto";
+
+service CommentService {
+  rpc CreateComment (CreateCommentRequest) returns (CommentResponse);
+  rpc GetComment (GetCommentRequest) returns (CommentResponse);
+  rpc UpdateComment (UpdateCommentRequest) returns (CommentResponse);
+  rpc DeleteComment (DeleteCommentRequest) returns (google.protobuf.Empty);
+  rpc ListComments (ListCommentsRequest) returns (ListCommentsResponse);
+}
+
+message CreateCommentRequest {
+  string message = 1;
+  int32 user_id = 2;
+  int32 stream_id = 3;
+}
+
+message GetCommentRequest {
+  int32 id = 1;
+}
+
+message UpdateCommentRequest {
+  int32 id = 1;
+  string message = 2;
+}
+
+message DeleteCommentRequest {
+  int32 id = 1;
+}
+
+message ListCommentsRequest {
+  optional int32 stream_id = 1;
+  optional int32 user_id = 2;
+}
+
+message CommentResponse {
+  int32 id = 1;
+  string message = 2;
+  int32 user_id = 3;
+  int32 stream_id = 4;
+}
+
+message ListCommentsResponse {
+  repeated CommentResponse comments = 1;
+}
