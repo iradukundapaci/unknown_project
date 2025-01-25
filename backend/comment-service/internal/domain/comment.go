@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -30,7 +31,15 @@ type CommentFilter struct {
 	Page     int32
 }
 
-func ValidateComment(content string) error {
+type CommentRepository interface {
+	CreateComment(ctx context.Context, comment *Comment) error
+	GetComment(ctx context.Context, id int32) (*Comment, error)
+	UpdateComment(ctx context.Context, comment *Comment) error
+	DeleteComment(ctx context.Context, id int32) error
+	ListComments(ctx context.Context, filter CommentFilter) ([]*Comment, int32, error)
+}
+
+func ValidateCommentContent(content string) error {
 	if len(content) == 0 {
 		return ErrEmptyComment
 	}

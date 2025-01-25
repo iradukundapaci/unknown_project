@@ -2,26 +2,29 @@ package clients
 
 import (
 	"context"
-	"github.com/Josy-coder/comment-service/internal/service"
-	dbpb "github.com/Josy-coder/db-service/proto/db/v1"
+	"fmt"
+
+	"github.com/Josy-coder/comment-service/internal/domain"
+	pb "github.com/Josy-coder/db-service/proto/db/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type DBServiceClient struct {
-	client dbpb.DatabaseServiceClient
+	client pb.DatabaseServiceClient
 	conn   *grpc.ClientConn
 }
 
 func NewDBServiceClient(address string) (*DBServiceClient, error) {
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to database service: %w", err)
 	}
 
+	client := pb.NewDatabaseServiceClient(conn)
 	return &DBServiceClient{
-		client: dbpb.NewDatabaseServiceClient(conn),
+		client: client,
 		conn:   conn,
 	}, nil
 }
@@ -30,50 +33,40 @@ func (c *DBServiceClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *DBServiceClient) CreateComment(ctx context.Context, comment *service.Comment) error {
-	_, err := c.client.CreateComment(ctx, &dbpb.CreateCommentRequest{
-		Comment: &dbpb.Comment{
-			Content:   comment.Content,
-			UserId:    comment.UserID,
-			StreamId:  comment.StreamID,
-			CreatedAt: timestamppb.New(comment.CreatedAt),
-			UpdatedAt: timestamppb.New(comment.UpdatedAt),
-		},
+func (c *DBServiceClient) CreateComment(ctx context.Context, comment *domain.Comment) error {
+	_, err := c.client.CreateComment(ctx, &pb.CreateCommentRequest{
+		Comment: toProtoComment(comment),
 	})
 	return err
 }
 
-func (c *DBServiceClient) GetComment(ctx context.Context, id int32) (*service.Comment, error) {
-	resp, err := c.client.GetComment(ctx, &dbpb.GetCommentRequest{
+func (c *DBServiceClient) GetComment(ctx context.Context, id int32) (*domain.Comment, error) {
+	resp, err := c.client.GetComment(ctx, &pb.GetCommentRequest{
 		Id: id,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return toServiceComment(resp.Comment), nil
+	return toDomainComment(resp.Comment), nil
 }
 
-func (c *DBServiceClient) UpdateComment(ctx context.Context, comment *service.Comment) error {
-	_, err := c.client.UpdateComment(ctx, &dbpb.UpdateCommentRequest{
-		Comment: &dbpb.Comment{
-			Id:        comment.ID,
-			Content:   comment.Content,
-			UpdatedAt: timestamppb.New(comment.UpdatedAt),
-		},
+func (c *DBServiceClient) UpdateComment(ctx context.Context, comment *domain.Comment) error {
+	_, err := c.client.UpdateComment(ctx, &pb.UpdateCommentRequest{
+		Comment: toProtoComment(comment),
 	})
 	return err
 }
 
 func (c *DBServiceClient) DeleteComment(ctx context.Context, id int32) error {
-	_, err := c.client.DeleteComment(ctx, &dbpb.DeleteCommentRequest{
+	_, err := c.client.DeleteComment(ctx, &pb.DeleteCommentRequest{
 		Id: id,
 	})
 	return err
 }
 
-func (c *DBServiceClient) ListComments(ctx context.Context, filter *service.CommentFilter) ([]*service.Comment, int32, error) {
-	resp, err := c.client.ListComments(ctx, &dbpb.ListCommentsRequest{
+func (c *DBServiceClient) ListComments(ctx context.Context, filter domain.CommentFilter) ([]*domain.Comment, int32, error) {
+	resp, err := c.client.ListComments(ctx, &pb.ListCommentsRequest{
 		StreamId: filter.StreamID,
 		UserId:   filter.UserID,
 		Page:     filter.Page,
@@ -83,20 +76,31 @@ func (c *DBServiceClient) ListComments(ctx context.Context, filter *service.Comm
 		return nil, 0, err
 	}
 
-	comments := make([]*service.Comment, len(resp.Comments))
+	comments := make([]*domain.Comment, len(resp.Comments))
 	for i, c := range resp.Comments {
-		comments[i] = toServiceComment(c)
+		comments[i] = toDomainComment(c)
 	}
 
 	return comments, resp.TotalCount, nil
 }
 
-func toServiceComment(c *dbpb.Comment) *service.Comment {
+func toProtoComment(c *domain.Comment) *pb.Comment {
+	return &pb.Comment{
+		Id:        c.ID,
+		Content:   c.Content,
+		UserId:    c.UserID,
+		StreamId:  c.StreamID,
+		CreatedAt: timestamppb.New(c.CreatedAt),
+		UpdatedAt: timestamppb.New(c.UpdatedAt),
+	}
+}
+
+func toDomainComment(c *pb.Comment) *domain.Comment {
 	if c == nil {
 		return nil
 	}
 
-	comment := &service.Comment{
+	comment := &domain.Comment{
 		ID:       c.Id,
 		Content:  c.Content,
 		UserID:   c.UserId,

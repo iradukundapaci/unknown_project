@@ -31,9 +31,24 @@ func (c *StreamServiceClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *StreamServiceClient) GetStream(ctx context.Context, streamID int32) error {
-	_, err := c.client.GetStream(ctx, &pb.GetStreamRequest{
-		Id: streamID,
+// GetUserStreams gets all streams for a user
+func (c *StreamServiceClient) GetUserStreams(ctx context.Context, userID int32) ([]*pb.Stream, error) {
+	resp, err := c.client.ListStreams(ctx, &pb.ListStreamsRequest{
+		UserId: &userID,
 	})
-	return err
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user streams: %w", err)
+	}
+	return resp.Streams, nil
+}
+
+// DeleteUserStreams deletes all streams for a user
+func (c *StreamServiceClient) DeleteUserStreams(ctx context.Context, userID int32) error {
+	_, err := c.client.DeleteUserStreams(ctx, &pb.DeleteUserStreamsRequest{
+		UserId: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete user streams: %w", err)
+	}
+	return nil
 }
