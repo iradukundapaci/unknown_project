@@ -4,7 +4,6 @@ option csharp_namespace = "StreamDb.Protos";
 
 package stream;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service StreamService {

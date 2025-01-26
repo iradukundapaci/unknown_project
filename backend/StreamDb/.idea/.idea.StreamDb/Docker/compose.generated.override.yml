@@ -1,0 +1,20 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  dev:
+    build:
+      context: "/home/paci/Desktop/school/unknown_project/backend/StreamDb"
+      dockerfile: "Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net8.0/StreamDb.dll"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "streamdb:dev"
+    ports: []
+    volumes:
+    - "/home/paci/Desktop/school/unknown_project/backend/StreamDb:/app:rw"
+    - "/home/paci/Desktop/school/unknown_project/backend/StreamDb:/src:rw"
+    - "/home/paci/.nuget/packages:/home/app/.nuget/packages"
+    working_dir: "/app"

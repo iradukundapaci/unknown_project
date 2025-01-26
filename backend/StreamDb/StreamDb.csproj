@@ -17,6 +17,7 @@
         <PackageReference Include="EntityFramework" Version="6.5.1" />
         <PackageReference Include="EntityFramework6.Npgsql" Version="6.4.3" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.57.0"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
         <PackageReference Include="Grpc.Tools" Version="2.69.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
