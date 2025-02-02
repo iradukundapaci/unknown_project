@@ -1,32 +1,38 @@
 syntax = "proto3";
+package user;
 
 option csharp_namespace = "StreamDb.Protos";
 
-package user;
-
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 service UserService {
   rpc CreateUser (CreateUserRequest) returns (UserResponse);
   rpc GetUser (GetUserRequest) returns (UserResponse);
   rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
   rpc DeleteUser (DeleteUserRequest) returns (google.protobuf.Empty);
-  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse);
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse);
 }
 
 message CreateUserRequest {
   string email = 1;
-  string names = 2;
+  string first_name = 2;
+  string last_name = 3;
+  string profile_image_url = 4;
+  string clerk_id = 5;
 }
 
 message GetUserRequest {
   int32 id = 1;
+  string clerk_id = 2;
 }
 
 message UpdateUserRequest {
   int32 id = 1;
   string email = 2;
-  string names = 3;
+  string first_name = 3;
+  string last_name = 4;
+  string profile_image_url = 5;
 }
 
 message DeleteUserRequest {
@@ -36,9 +42,27 @@ message DeleteUserRequest {
 message UserResponse {
   int32 id = 1;
   string email = 2;
-  string names = 3;
+  string first_name = 3;
+  string last_name = 4;
+  string profile_image_url = 5;
+  string clerk_id = 6;
+}
+
+message UserFilter {
+  string email_contains = 1;
+  string name_contains = 2;
+  int32 id_equals = 3;
+}
+
+message ListUsersRequest {
+  int32 page_size = 1;
+  int32 page_number = 2;
+  UserFilter filter = 3;
+  string sort_by = 4;
+  bool ascending = 5;
 }
 
 message ListUsersResponse {
   repeated UserResponse users = 1;
+  common.PaginationMetadata pagination = 2;
 }

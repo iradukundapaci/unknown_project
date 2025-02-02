@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option csharp_namespace = "StreamDb.Protos";
+
+package common;
+
+message PaginationMetadata {
+  int32 total_items = 1;
+  int32 total_pages = 2;
+  int32 current_page = 3;
+  int32 page_size = 4;
+}

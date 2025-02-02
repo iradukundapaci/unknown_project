@@ -8,9 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Protobuf Include="Protos\user.proto" GrpcServices="Server"/>
-        <Protobuf Include="Protos\stream.proto" GrpcServices="Server"/>
-        <Protobuf Include="Protos\comment.proto" GrpcServices="Server"/>
+        <Protobuf Include="Protos\common.proto" GrpcServices="None" ProtoRoot="Protos\"/>
+        <Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos\"/>
+        <Protobuf Include="Protos\stream.proto" GrpcServices="Server" ProtoRoot="Protos\"/>
+        <Protobuf Include="Protos\comment.proto" GrpcServices="Server" ProtoRoot="Protos\"/>
     </ItemGroup>
 
     <ItemGroup>

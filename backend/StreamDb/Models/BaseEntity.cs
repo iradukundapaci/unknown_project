@@ -1,10 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StreamDb.Models;
 
 public class BaseEntity: IHasTimestamps
 {
-    [Column("id")]
+    [Key]
     public int Id { get; set; }
     
     [DatabaseGenerated(DatabaseGeneratedOption.Identity), Column("created_at")]

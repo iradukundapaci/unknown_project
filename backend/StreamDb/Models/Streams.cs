@@ -5,58 +5,50 @@ namespace StreamDb.Models;
 
 public class Streams : BaseEntity 
 {
-    [Column("title")]
     [Required]
-    public string Title { get; set; }
+    [MaxLength(100)]
+    public string Title { get; set; } = null!;
     
-    [Column("description")]
     [Required]
-    public string Description { get; set; }
+    [MaxLength(100)]
+    public string Description { get; set; } = null!;
     
-    [Column("start_time")]
     [Required]
-    public string StartTime { get; set; }
+    public DateTime StartTime { get; set; }
     
-    [Column("end_time")]
     [Required]
-    public string EndTime { get; set; }
+    public DateTime EndTime { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string StreamKey { get; set; } = null!;
     
-    [Column("stream_key")]
     [Required]
-    public string StreamKey { get; set; }
+    [MaxLength(100)]
+    public string Resolution { get; set; } = null!;
     
-    [Column("resolution")]
     [Required]
-    public string Resolution { get; set; }
+    public int Bitrate { get; set; } = 0;
     
-    [Column("bitrate")]
     [Required]
-    public string Bitrate { get; set; }
+    public int Framerate { get; set; } = 0;
     
-    [Column("framerate")]
     [Required]
-    public string Framerate { get; set; }
-    
-    [Column("codec")]
+    [MaxLength(100)]
+    public string Codec { get; set; } = null!;
+
+    [Required] public int ViewCount { get; set; } = 0;
+
     [Required]
-    public string Codec { get; set; }
-    
-    [Column("view_count")]
-    [Required]
-    public int ViewCount { get; set; }
-    
-    [Column("protocol")]
-    [Required]
-    public int Protocol { get; set; }
-    
-    [Column("status")]
-    [Required]
-    public EStreamStatus Status { get; set; }
+    [MaxLength(100)]
+    public string Protocol { get; set; } = null!;
+
+    [Required] public EStreamStatus Status { get; set; } = EStreamStatus.SCHEDULED;
     
     [Column("user_id")]
     [Required]
-    public int UserId { get; set; }
+    public int UserId { get; init; }
     
-    public User User { get; set; }
-    public ICollection<Comments> Comments { get; set; }
+    public User User { get; init; }
+    public ICollection<Comments> Comments { get; init; }
 }

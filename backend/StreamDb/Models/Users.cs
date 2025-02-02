@@ -3,16 +3,27 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StreamDb.Models;
 
-public class User : BaseEntity 
+public sealed class User : BaseEntity 
 {
-    [Column("email")]
     [Required]
-    public string Email { get; set; }
-    
-    [Column("names")]
+    [MaxLength(100)]
+    public string FirstName { get; set; } = null!;
+
     [Required]
-    public string Names { get; set; }
-    
-    public ICollection<Streams> Streams { get; set; }
-    public ICollection<Comments> Comments { get; set; }
+    [MaxLength(100)]
+    public string LastName { get; set; } = null!;
+
+    [Required]
+    [EmailAddress]
+    [MaxLength(255)]
+    public string Email { get; set; } = null!;
+
+    [Required]
+    [MaxLength(1000)]
+    public string ProfileImageUrl { get; set; } = null!;
+
+    [Required]
+    [MaxLength(255)]
+    [Index(IsUnique = true)]
+    public string ClerkId { get; init; } = null!;
 }

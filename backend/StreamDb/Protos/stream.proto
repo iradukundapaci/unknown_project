@@ -5,6 +5,7 @@ option csharp_namespace = "StreamDb.Protos";
 package stream;
 
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 service StreamService {
   rpc CreateStream (CreateStreamRequest) returns (StreamResponse);
@@ -14,13 +15,6 @@ service StreamService {
   rpc ListStreams (ListStreamsRequest) returns (ListStreamsResponse);
 }
 
-enum StreamStatus {
-  ONLINE = 0;
-  OFFLINE = 1;
-  COMPLETE = 2;
-  SCHEDULED = 3;
-}
-
 message CreateStreamRequest {
   string title = 1;
   string description = 2;
@@ -28,12 +22,12 @@ message CreateStreamRequest {
   string end_time = 4;
   string stream_key = 5;
   string resolution = 6;
-  string bitrate = 7;
-  string framerate = 8;
+  int32 bitrate = 7;
+  int32 framerate = 8;
   string codec = 9;
-  int32 protocol = 10;
-  StreamStatus status = 11;
-  int32 user_id = 12;
+  string protocol = 10;
+  string status = 11;
+  int64 user_id = 12;
 }
 
 message GetStreamRequest {
@@ -47,20 +41,39 @@ message UpdateStreamRequest {
   string start_time = 4;
   string end_time = 5;
   string resolution = 6;
-  string bitrate = 7;
-  string framerate = 8;
+  int32 bitrate = 7;
+  int32 framerate = 8;
   string codec = 9;
-  int32 protocol = 10;
-  StreamStatus status = 11;
+  int32 view_count= 10;
+  string protocol = 11;
+  string status = 12;
 }
 
 message DeleteStreamRequest {
   int32 id = 1;
 }
 
+message StreamFilter {
+  string title_contains = 1;
+  string description_contains = 2;
+  int32 user_id = 3;
+  int32 min_view_count = 4;
+  int32 max_view_count = 5;
+  string start_time = 6;
+  string end_time = 7;
+  string end_time_after = 8;
+  string end_time_before = 9;
+  repeated string status = 10;
+  string codec = 11;
+  string protocol = 12;
+}
+
 message ListStreamsRequest {
-  optional int32 user_id = 1;
-  optional StreamStatus status = 2;
+  int32 page_size = 1;
+  int32 page_number = 2;
+  StreamFilter filter = 3;
+  string sort_by = 4;
+  bool ascending = 5;
 }
 
 message StreamResponse {
@@ -75,11 +88,12 @@ message StreamResponse {
   string framerate = 9;
   string codec = 10;
   int32 view_count = 11;
-  int32 protocol = 12;
-  StreamStatus status = 13;
+  string protocol = 12;
+  string status = 13;
   int32 user_id = 14;
 }
 
 message ListStreamsResponse {
   repeated StreamResponse streams = 1;
+  common.PaginationMetadata meta_data = 2;
 }

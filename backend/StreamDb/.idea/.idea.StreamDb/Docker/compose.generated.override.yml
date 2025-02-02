@@ -5,16 +5,32 @@ services:
       context: "/home/paci/Desktop/school/unknown_project/backend/StreamDb"
       dockerfile: "Dockerfile"
       target: "base"
+      args:
+        BUILD_CONFIGURATION: "Debug"
     command: []
     entrypoint:
-    - "dotnet"
-    - "/app/bin/Debug/net8.0/StreamDb.dll"
+    - "/opt/JetBrains/RiderDebuggerTools/linux-x64/JetBrains.Debugger.Worker"
+    - "--runtimeconfig"
+    - "/opt/JetBrains/RiderDebuggerTools/JetBrains.Debugger.Worker.runtimeconfig.json"
+    - "--mode=server"
+    - "--frontend-port=57000"
+    - "--backend-port=57200"
+    - "--roslyn-worker-port=57400"
+    - "--timeout=60"
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      RIDER_DEBUGGER_LOG_DIR: "/var/opt/JetBrains/RiderDebuggerTools"
+      RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "streamdb:dev"
-    ports: []
+    ports:
+    - "127.0.0.1:57000:57000"
+    - "127.0.0.1:57200:57200"
+    - "127.0.0.1:57400:57400"
     volumes:
     - "/home/paci/Desktop/school/unknown_project/backend/StreamDb:/app:rw"
     - "/home/paci/Desktop/school/unknown_project/backend/StreamDb:/src:rw"
     - "/home/paci/.nuget/packages:/home/app/.nuget/packages"
+    - "/home/paci/.local/share/JetBrains/RiderRemoteDebugger/2024.3.3/Linux64:/opt/JetBrains/RiderDebuggerTools"
+    - "/home/paci/.local/share/JetBrains/Toolbox/apps/rider/bin/backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    - "/home/paci/.cache/JetBrains/Rider2024.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_2_02_07_01_46:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"

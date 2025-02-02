@@ -7,16 +7,17 @@ public class Comments : BaseEntity
 {
     [Column("message")]
     [Required]
-    public  string Message { get; set; }
+    [MaxLength(255)]
+    public  string Message { get; set; } = null!;
     
     [Column("user_id")]
     [Required]
-    public int UserId { get; set; }
+    public int UserId { get; init; }
     
     [Column("stream_id")]
     [Required]
-    public int StreamId { get; set; }
+    public int StreamId { get; init; }
     
-    public User User { get; set; }
-    public Streams Stream { get; set; }
+    public User User { get; init; }
+    public Streams Stream { get; init; }
 }

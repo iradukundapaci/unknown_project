@@ -5,6 +5,7 @@ option csharp_namespace = "StreamDb.Protos";
 package comment;
 
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 service CommentService {
   rpc CreateComment (CreateCommentRequest) returns (CommentResponse);
@@ -33,9 +34,20 @@ message DeleteCommentRequest {
   int32 id = 1;
 }
 
+message CommentFilter {
+  string message_contains = 1;
+  int32 user_id = 2;
+  int32 stream_id = 3;
+  string created_after = 4;
+  string created_before = 5;
+}
+
 message ListCommentsRequest {
-  optional int32 stream_id = 1;
-  optional int32 user_id = 2;
+  int32 page_size = 1;
+  int32 page_number = 2;
+  CommentFilter filter = 3;
+  string sort_by = 4;
+  bool ascending = 5;
 }
 
 message CommentResponse {
@@ -43,8 +55,10 @@ message CommentResponse {
   string message = 2;
   int32 user_id = 3;
   int32 stream_id = 4;
+  string created_at = 5;
 }
 
 message ListCommentsResponse {
   repeated CommentResponse comments = 1;
+  common.PaginationMetadata meta_data = 2;
 }

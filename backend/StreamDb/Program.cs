@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StreamDb.Context;
 using StreamDb.Services;
+using UserService = StreamDb.Services.UserService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,22 @@ builder.Services.AddDbContext<StreamDbContext>(options =>
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<StreamDbContext>();
+    try
+    {
+        db.Database.Migrate();
+        Console.WriteLine("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"An error occurred while applying migrations: {ex.Message}");
+        throw; // Re-throw if you want the application to fail on migration error
+    }
+}
+
 
 app.MapGrpcReflectionService();
 app.MapGrpcService<UserService>();
