@@ -14,6 +14,7 @@ builder.Services.AddDbContext<StreamDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -27,10 +28,9 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Console.WriteLine($"An error occurred while applying migrations: {ex.Message}");
-        throw; // Re-throw if you want the application to fail on migration error
+        throw;
     }
 }
-
 
 app.MapGrpcReflectionService();
 app.MapGrpcService<UserService>();

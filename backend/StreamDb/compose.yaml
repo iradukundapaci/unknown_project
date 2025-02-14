@@ -7,7 +7,8 @@
       - 5000:5000
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5000;
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=streamdb;Username=postgres;Password=password
     depends_on:
       postgres:
         condition: service_healthy
@@ -20,8 +21,10 @@
       POSTGRES_DB: streamdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 5
