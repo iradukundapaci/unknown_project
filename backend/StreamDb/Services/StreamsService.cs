@@ -6,7 +6,6 @@ using StreamDb.Models;
 using StreamDb.Protos;
 using Google.Protobuf.WellKnownTypes;
 using System.Linq.Expressions;
-using Enum = System.Enum;
 
 namespace StreamDb.Services;
 
@@ -32,7 +31,7 @@ public class StreamService(StreamDbContext context) : Protos.StreamService.Strea
             Framerate = request.Framerate,
             Codec = request.Codec?.Trim()!,
             Protocol = request.Protocol?.Trim()!,
-            Status = Enum.Parse<EStreamStatus>(request.Status.ToUpper()),
+            Status = ConvertStreamStatus(request.Status),
             UserId = (int)request.UserId,
             ViewCount = 0,
             CreatedAt = DateTime.UtcNow
@@ -179,11 +178,6 @@ public override async Task<ListStreamsResponse> ListStreams(ListStreamsRequest r
         if (string.IsNullOrWhiteSpace(request.StreamKey))
             errors.Add("Stream key is required");
 
-        if (string.IsNullOrWhiteSpace(request.Status))
-            errors.Add("Status is required");
-        else if (!Enum.TryParse<EStreamStatus>(request.Status.ToUpper(), out _))
-            errors.Add("Invalid status value");
-
         try
         {
             var startTime = ParseTimestamp(request.StartTime);
@@ -256,11 +250,6 @@ public override async Task<ListStreamsResponse> ListStreams(ListStreamsRequest r
 
         if (string.IsNullOrWhiteSpace(request.Title))
             errors.Add("Title is required");
-
-        if (string.IsNullOrWhiteSpace(request.Status))
-            errors.Add("Status is required");
-        else if (!Enum.TryParse<EStreamStatus>(request.Status.ToUpper(), out _))
-            errors.Add("Invalid status value");
 
         try
         {
@@ -336,7 +325,7 @@ public override async Task<ListStreamsResponse> ListStreams(ListStreamsRequest r
             Codec = stream.Codec,
             ViewCount = stream.ViewCount,
             Protocol = stream.Protocol,
-            Status = stream.Status.ToString(),
+            Status = (StreamStatus)stream.Status,
             UserId = stream.UserId
         };
     }
@@ -370,8 +359,8 @@ public override async Task<ListStreamsResponse> ListStreams(ListStreamsRequest r
         if (!string.IsNullOrWhiteSpace(request.Protocol))
             stream.Protocol = request.Protocol;
 
-        if (!string.IsNullOrWhiteSpace(request.Status))
-            stream.Status = Enum.Parse<EStreamStatus>(request.Status.ToUpper());
+        if (!string.IsNullOrWhiteSpace(request.Status.ToString()))
+            stream.Status = ConvertStreamStatus(request.Status);
 
         if (request.ViewCount >= 0)
             stream.ViewCount = request.ViewCount;
@@ -399,7 +388,7 @@ private static IQueryable<Streams> ApplyFilters(IQueryable<Streams> query, Strea
         if (filter.Status.Count > 0)
         {
             var statuses = filter.Status
-                .Select(s => Enum.Parse<EStreamStatus>(s.ToUpper()))
+                .Select(ConvertStreamStatus)
                 .Distinct()
                 .ToList();
             query = query.Where(s => statuses.Contains(s.Status));
@@ -424,9 +413,14 @@ private static IQueryable<Streams> ApplyFilters(IQueryable<Streams> query, Strea
             "viewCount" => stream => stream.ViewCount,
             "status" => stream => stream.Status,
             "userid" => stream => stream.UserId,
-            _ => stream => stream.Id // Default sorting by ID
+            _ => stream => stream.Id
         };
 
         return ascending ? query.OrderBy(keySelector) : query.OrderByDescending(keySelector);
+    }
+    
+    private static EStreamStatus ConvertStreamStatus(StreamStatus status)
+    {
+        return (EStreamStatus)status;
     }
 }

@@ -15,6 +15,13 @@ service StreamService {
   rpc ListStreams (ListStreamsRequest) returns (ListStreamsResponse);
 }
 
+enum StreamStatus {
+  ONLINE = 0;
+  OFFLINE = 1;
+  COMPLETE = 2;
+  SCHEDULED = 3;
+}
+
 message CreateStreamRequest {
   string title = 1;
   string description = 2;
@@ -26,7 +33,7 @@ message CreateStreamRequest {
   int32 framerate = 8;
   string codec = 9;
   string protocol = 10;
-  string status = 11;
+  StreamStatus status = 11;
   int64 user_id = 12;
 }
 
@@ -46,7 +53,7 @@ message UpdateStreamRequest {
   string codec = 9;
   int32 view_count= 10;
   string protocol = 11;
-  string status = 12;
+  StreamStatus status = 12;
 }
 
 message DeleteStreamRequest {
@@ -63,7 +70,7 @@ message StreamFilter {
   string end_time = 7;
   string end_time_after = 8;
   string end_time_before = 9;
-  repeated string status = 10;
+  repeated StreamStatus status = 10;
   string codec = 11;
   string protocol = 12;
 }
@@ -89,7 +96,7 @@ message StreamResponse {
   string codec = 10;
   int32 view_count = 11;
   string protocol = 12;
-  string status = 13;
+  StreamStatus status = 13;
   int32 user_id = 14;
 }
 
