@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package stream;
+
+option go_package = "stream-service/pkg/grpc/proto;proto";
+
+import "google/protobuf/empty.proto";
+
+service StreamService {
+    rpc CreateStream (CreateStreamRequest) returns (StreamResponse);
+    rpc GetStream (GetStreamRequest) returns (StreamResponse);
+    rpc UpdateStream (UpdateStreamRequest) returns (StreamResponse);
+    rpc DeleteStream (DeleteStreamRequest) returns (google.protobuf.Empty);
+    rpc ListStreams (ListStreamsRequest) returns (ListStreamsResponse);
+  }
+
+  message PaginationMetadata {
+    int32 total_items = 1;
+    int32 total_pages = 2;
+    int32 current_page = 3;
+    int32 page_size = 4;
+  }
+  
+  message CreateStreamRequest {
+    string title = 1;
+    string description = 2;
+    string start_time = 3;
+    string end_time = 4;
+    string stream_key = 5;
+    string resolution = 6;
+    int32 bitrate = 7;
+    int32 framerate = 8;
+    string codec = 9;
+    string protocol = 10;
+    string status = 11;
+    int64 user_id = 12;
+  }
+  
+  message GetStreamRequest {
+    int32 id = 1;
+  }
+  
+  message UpdateStreamRequest {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    string start_time = 4;
+    string end_time = 5;
+    string resolution = 6;
+    int32 bitrate = 7;
+    int32 framerate = 8;
+    string codec = 9;
+    int32 view_count= 10;
+    string protocol = 11;
+    string status = 12;
+  }
+  
+  message DeleteStreamRequest {
+    int32 id = 1;
+  }
+  
+  message StreamFilter {
+    string title_contains = 1;
+    string description_contains = 2;
+    int32 user_id = 3;
+    int32 min_view_count = 4;
+    int32 max_view_count = 5;
+    string start_time = 6;
+    string end_time = 7;
+    string end_time_after = 8;
+    string end_time_before = 9;
+    repeated string status = 10;
+    string codec = 11;
+    string protocol = 12;
+  }
+  
+  message ListStreamsRequest {
+    int32 page_size = 1;
+    int32 page_number = 2;
+    StreamFilter filter = 3;
+    string sort_by = 4;
+    bool ascending = 5;
+  }
+  
+  message StreamResponse {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    string start_time = 4;
+    string end_time = 5;
+    string stream_key = 6;
+    string resolution = 7;
+    string bitrate = 8;
+    string framerate = 9;
+    string codec = 10;
+    int32 view_count = 11;
+    string protocol = 12;
+    string status = 13;
+    int32 user_id = 14;
+  }
+  
+  message ListStreamsResponse {
+    repeated StreamResponse streams = 1;
+    PaginationMetadata meta_data = 2;
+  }
