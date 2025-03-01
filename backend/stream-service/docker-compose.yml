@@ -1,0 +1,14 @@
+services:
+  stream-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082" # gRPC port
+      - "8081:8081"   # REST API port
+    environment:
+      GIN_MODE: release
+      PORT: 8081
+      DB_SERVICE_ADDRESS: host.docker.internal:5001
+      gRPC_PORT: 8082
+      DATABASE_SERVICE_URL: "http://host.docker.internal:5001" # database service URL
