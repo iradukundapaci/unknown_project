@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>WebRTC Consumer</h1>
+    <video id="remoteVideo" autoplay playsinline controls></video>
+    <button id="watchButton" onclick="startConsuming()">Start Watching</button>
+    <div id="status">Waiting for available streams...</div>
+    
+    <script>
+        const socket = io('ws://localhost:8000');
+        let peerConnection;
+        const streamId = 'stream-123'; // Same ID as the streamer
+        
+        // Join a room when connection is established
+        socket.on('connect', () => {
+            console.log('Connected to signaling server, socket ID:', socket.id);
+            socket.emit('joinRoom', { room: 'streamRoom' });
+        });
+
+        socket.on('roomJoined', (data) => {
+            console.log('Joined room, available streams:', data.availableStreams);
+            if (data.availableStreams && data.availableStreams.includes(streamId)) {
+                document.getElementById('status').textContent = 'Stream is available! Click Start Watching.';
+                document.getElementById('watchButton').disabled = false;
+            } else {
+                document.getElementById('status').textContent = 'Waiting for stream to become available...';
+                document.getElementById('watchButton').disabled = true;
+            }
+        });
+        
+        socket.on('newStreamAvailable', (data) => {
+            console.log('New stream available notification:', data);
+            if (data.streamId === streamId) {
+                document.getElementById('status').textContent = 'Stream is now available! Click Start Watching.';
+                document.getElementById('watchButton').disabled = false;
+            }
+        });
+        
+        async function startConsuming() {
+            try {
+                console.log('Starting to consume stream:', streamId);
+                document.getElementById('status').textContent = 'Connecting to stream...';
+                
+                // Create peer connection with STUN servers
+                peerConnection = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+                
+                // Handle incoming tracks
+                peerConnection.ontrack = (event) => {
+                    console.log('Received track from server:', event.track.kind);
+                    const videoElement = document.getElementById('remoteVideo');
+                    
+                    // Only set stream object if it's not already set
+                    if (!videoElement.srcObject) {
+                        videoElement.srcObject = event.streams[0];
+                        document.getElementById('status').textContent = 'Connected to stream!';
+                    }
+                };
+                
+                // Handle ICE candidates
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log('Sending ICE candidate to server');
+                        socket.emit('iceCandidate', { 
+                            streamId, 
+                            candidate: event.candidate,
+                            isProducer: false
+                        });
+                    }
+                };
+                
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE connection state changed to:', peerConnection.iceConnectionState);
+                };
+                
+                // Request to create a consumer connection on the server
+                const response = await new Promise(resolve => {
+                    socket.emit('createConsumer', { streamId }, resolve);
+                });
+                
+                console.log('Consumer creation response:', response);
+                
+                if (response.error) {
+                    document.getElementById('status').textContent = 'Error: ' + response.error;
+                    console.error('Server returned error:', response.error);
+                    return;
+                }
+                
+                if (!response.offer) {
+                    document.getElementById('status').textContent = 'Error: No offer received from server';
+                    console.error('No offer in response');
+                    return;
+                }
+                
+                // Set the server's offer as remote description
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(response.offer));
+                console.log('Set remote description from server offer');
+                
+                // Create answer to send back to the server
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log('Created and set local description (answer)');
+                
+                // Send the answer back to the server
+                socket.emit('consumerAnswer', {
+                    streamId,
+                    answer: peerConnection.localDescription
+                });
+                
+                console.log('Sent consumer answer to server');
+            } catch (error) {
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+                console.error('Error consuming stream:', error);
+            }
+        }
+        
+        socket.on('iceCandidate', async (data) => {
+            if (data.from !== socket.id && peerConnection) {
+                console.log('Received ICE candidate from server');
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    console.log('Added ICE candidate from server');
+                } catch (error) {
+                    console.error('Error adding received ICE candidate:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

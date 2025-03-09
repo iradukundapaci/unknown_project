@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamer</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>WebRTC Streamer</h1>
+    <video id="localVideo" autoplay muted playsinline></video>
+    <button onclick="startStream()">Start Stream</button>
+    
+    <script>
+        const socket = io('ws://localhost:8000');
+        let peerConnection;
+        const streamId = 'stream-123';
+        const constraints = { video: true, audio: true };
+        
+        // Join a room when connection is established
+        socket.on('connect', () => {
+            console.log('Connected to signaling server, socket ID:', socket.id);
+            socket.emit('joinRoom', { room: 'streamRoom' });
+        });
+
+        socket.on('roomJoined', (data) => {
+            console.log('Joined room:', data);
+        });
+        
+        async function startStream() {
+            try {
+                console.log('Starting stream...');
+                const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('localVideo').srcObject = localStream;
+                
+                console.log('Got local media stream');
+                
+                // First request to create a producer connection on the server
+                const response = await new Promise(resolve => {
+                    socket.emit('createProducer', { streamId }, resolve);
+                });
+                
+                console.log('Producer created, got offer:', response);
+                
+                if (!response || !response.offer) {
+                    console.error('Failed to get offer from server');
+                    return;
+                }
+                
+                // Create peer connection with STUN servers
+                peerConnection = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+                
+                // Add our local stream to the connection
+                localStream.getTracks().forEach(track => {
+                    console.log('Adding track to peer connection:', track.kind);
+                    peerConnection.addTrack(track, localStream);
+                });
+                
+                // Handle ICE candidates
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log('Sending ICE candidate to server');
+                        socket.emit('iceCandidate', { 
+                            streamId, 
+                            candidate: event.candidate, 
+                            isProducer: true 
+                        });
+                    }
+                };
+                
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE connection state changed to:', peerConnection.iceConnectionState);
+                    if (peerConnection.iceConnectionState === 'connected') {
+                        console.log('Stream is ready and connected!');
+                    }
+                };
+                
+                // Set the server's offer as remote description
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(response.offer));
+                console.log('Set remote description from server offer');
+                
+                // Create answer to send back to the server
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log('Created and set local description (answer)');
+                
+                // Send the answer back to the server
+                socket.emit('producerAnswer', {
+                    streamId,
+                    answer: peerConnection.localDescription
+                });
+                
+                console.log('Sent producerAnswer to server, stream should be available soon');
+            } catch (error) {
+                console.error('Error starting stream:', error);
+            }
+        }
+        
+        socket.on('iceCandidate', async (data) => {
+            if (data.from !== socket.id && peerConnection) {
+                console.log('Received ICE candidate from server');
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    console.log('Added ICE candidate from server');
+                } catch (error) {
+                    console.error('Error adding received ICE candidate:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
